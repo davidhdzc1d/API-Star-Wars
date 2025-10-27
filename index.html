@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto 2ndo Parcial</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" rel="stylesheet"> <!-- Fuente Roboto -->
+</head>
+
+<body>
+    
+    <header class="shadow">
+        <div class="container-logo">
+            <img src="assets/logo1.png" alt="Un logo de la pagina"> 
+        </div>
+        <div>
+            <button id="dark-mode">Dark Mode</button>
+        </div>
+    </header>
+
+    <section class="container-title">
+        <h1>Star Wars Personajes</h1>
+    </section>
+
+    <section class="character" id="container-characters">
+    </section>
+
+    <button id="load-more">Cargar mas personajes</button>
+    
+</body>
+
+<script>
+    let allCharacters = []; // Variable para guardar todos los personajes una vez cargados
+    let currentIndex = 0; // Índice para rastrear cuántos se han mostrado
+    const charactersPerPage = 16; // Número de personajes por carga (puedes cambiarlo)
+
+    function renderLoader(){
+        const container = document.getElementById('container-characters')
+        const loader = document.createElement('div')
+        loader.setAttribute('id', 'loader')
+        loader.innerHTML = 'Cargando...'
+        container.appendChild(loader)
+    }
+
+    function removeLoader(){
+        const loader = document.getElementById('loader');
+        if (loader){
+            loader.parentNode.removeChild(loader);
+        }
+    }
+
+    async function fetchAllCharacters(){
+        const url = 'https://akabab.github.io/starwars-api/api/all.json';
+        renderLoader();
+        const response = await fetch(url);
+        const data = await response.json();
+        allCharacters = data;
+        removeLoader();
+        showNextCharacters(); // Muestra los primeros al cargar
+    }
+
+    function showNextCharacters() {
+        const container = document.getElementById("container-characters");
+        const endIndex = currentIndex + charactersPerPage;
+        const nextBatch = allCharacters.slice(currentIndex, endIndex);
+
+        nextBatch.forEach(element => {
+            console.log(element);
+            const container_character = document.createElement("div");
+            container_character.classList.add("character");
+            const img = document.createElement("img");
+            img.src = element.image;
+            img.onerror = function() { this.src = 'https://via.placeholder.com/200?text=Star+Wars+Character'; }; // Placeholder temático si no carga
+            container_character.appendChild(img);
+            
+            // Crear párrafo con info (inicialmente oculto)
+            const infoPara = document.createElement("p");
+            infoPara.classList.add("character-info");
+            infoPara.innerHTML = `Nombre: ${element.name}<br>Altura: ${element.height || 'Desconocida'} m<br>Especie: ${element.species || 'Desconocida'}<br>Género: ${element.gender || 'Desconocido'}<br>Planeta natal: ${element.homeworld || 'Desconocido'}`;
+            container_character.appendChild(infoPara);
+            
+            // Funcionalidad de click: Toggea la visibilidad de la info
+            container_character.addEventListener('click', () => {
+                infoPara.classList.toggle("show-info");
+            });
+            
+            container.appendChild(container_character);
+        });
+
+        currentIndex = endIndex;
+
+        // Si no hay más personajes, oculta el botón
+        if (currentIndex >= allCharacters.length) {
+            document.getElementById("load-more").style.display = 'none';
+        }
+    }
+
+    fetchAllCharacters(); // Llama a cargar todos al inicio
+
+    const btn = document.getElementById("load-more");
+    function loadMore(){
+        showNextCharacters();
+    }
+    btn.addEventListener("click", loadMore);
+
+    const btnDarkMode = document.getElementById("dark-mode");
+    function toggleDarkMode(){
+        document.body.classList.toggle("dark-mode");
+        if (document.body.classList.contains("dark-mode")) {
+            btnDarkMode.textContent = "Light Mode";
+        } else {
+            btnDarkMode.textContent = "Dark Mode";
+        }
+    }
+    btnDarkMode.addEventListener("click", toggleDarkMode);
+</script>
+
+</html>
